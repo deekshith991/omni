@@ -38,6 +38,7 @@ fn main() {
             install::install_package(package);
         }
         Some(Commands::Info) => {
+            println!("\nbasic info");
             basic_data();
         }
         None => {
