@@ -1,3 +1,9 @@
+// src/main.rs
+
+use colorize::*;
+
 fn main() {
-    println!("Hello, world!");
+
+    println!("{}","\nOMNI — One Manager, No matter the Infrastructure".green().bold());
+
 }
