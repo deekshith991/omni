@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  pull_request:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            cargo build --release
+          else
+            cargo build
+          fi
+
+      - name: Rename binary
+        if: startsWith(github.ref, 'refs/tags/')
+        run: mv target/release/omni target/release/omni-x86_64
+
+      - name: Upload binary to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/omni-x86_64
+          generate_release_notes: true
