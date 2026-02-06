@@ -1,7 +1,8 @@
 [package]
 name = "omni"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
+authors = [ "Deekshith vaggu <vaggudeekshith@gmail.com>" ]
 
 [dependencies]
 colorize = "0.1.0"
