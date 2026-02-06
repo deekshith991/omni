@@ -3,7 +3,10 @@
 use colorize::*;
 
 fn main() {
-
-    println!("{}","\nOMNI — One Manager, No matter the Infrastructure".green().bold());
-
+    println!(
+        "{}",
+        "\nOMNI — One Manager, No matter the Infrastructure"
+            .green()
+            .bold()
+    );
 }
