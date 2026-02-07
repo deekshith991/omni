@@ -1,6 +1,6 @@
 // src/main.rs
 
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use colorize::*;
 
 mod install;
@@ -15,10 +15,25 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Install a package (simulated)
-    Install { package: String },
+    /// Install a package
+    Install(InstallArgs),
+
     /// Show package info
     Info,
+}
+
+#[derive(Args)]
+struct InstallArgs {
+    /// Package name
+    package: String,
+
+    /// Install system-wide
+    #[arg(long, conflicts_with = "general")]
+    global: bool,
+
+    /// Install for current user
+    #[arg(long, conflicts_with = "global")]
+    general: bool,
 }
 
 fn main() {
@@ -33,17 +48,15 @@ fn main() {
 
     let cli = Cli::parse();
 
-    match &cli.command {
-        Some(Commands::Install { package }) => {
-            install::install_package(package);
+    match cli.command {
+        Some(Commands::Install(args)) => {
+            install::dispatch(args);
         }
         Some(Commands::Info) => {
             println!("\nbasic info");
             basic_data();
         }
-        None => {
-            // Nothing else to do; banner and basic data already printed
-        }
+        None => {}
     }
 }
 
