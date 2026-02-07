@@ -3,7 +3,9 @@
 use clap::{Args, Parser, Subcommand};
 use colorize::*;
 
+mod init;
 mod install;
+mod util;
 
 #[derive(Parser)]
 #[command(name = "omni")]
@@ -20,6 +22,9 @@ enum Commands {
 
     /// Show package info
     Info,
+
+    /// Initialize Omni
+    Init(InitArgs),
 }
 
 #[derive(Args)]
@@ -34,6 +39,13 @@ struct InstallArgs {
     /// Install for current user
     #[arg(long, conflicts_with = "global")]
     general: bool,
+}
+
+#[derive(Args)]
+struct InitArgs {
+    /// Initialize in this directory
+    #[arg(short, long, default_value = ".")]
+    dir: String,
 }
 
 fn main() {
@@ -55,6 +67,9 @@ fn main() {
         Some(Commands::Info) => {
             println!("\nbasic info");
             basic_data();
+        }
+        Some(Commands::Init(args)) => {
+            init::run(&args.dir);
         }
         None => {}
     }
