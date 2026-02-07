@@ -1,13 +1,16 @@
 // src/init.rs
 
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::util;
 
-pub fn run(dir: &str) -> PathBuf {
-    let path = util::resolve_path(dir);
+pub fn run(_dir: &str) -> PathBuf {
+    // ALWAYS use this directory
+    const DEFAULT_DIR: &str = "~/dotfiles/scripts";
 
+    let path = util::resolve_path(DEFAULT_DIR);
+
+    // Ensure directory exists (kept this in case you still want it)
     util::ensure_directory_exists(&path);
 
     let absolute_path = util::get_absolute_path(&path);
@@ -25,7 +28,7 @@ fn create_config_if_missing(path: &Path) {
     if config_path.exists() {
         println!("Config already exists at {}", config_path.display());
     } else {
-        fs::write(&config_path, get_base_config()).expect("Failed to create config file");
+        std::fs::write(&config_path, get_base_config()).expect("Failed to create config file");
 
         println!("Created config: {}", config_path.display());
     }

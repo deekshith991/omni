@@ -1,0 +1,13 @@
+
+[apt]
+packages = []
+
+[dnf]
+packages = []
+
+[general]
+packages = []
+
+[pacman]
+packages = []
+
