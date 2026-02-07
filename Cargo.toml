@@ -8,6 +8,7 @@ authors = [ "Deekshith vaggu <vaggudeekshith@gmail.com>" ]
 colorize = "0.1.0"
 clap = { version = "4.5.57", features = ["derive"] }
 dirs = "6.0.0"
+tempfile = "3.24.0"
 
 [dev-dependencies]
 assert_cmd = "2.1.2"

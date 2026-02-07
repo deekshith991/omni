@@ -1,0 +1,53 @@
+use omni::init;
+use omni::util;
+use std::fs;
+use std::path::PathBuf;
+use tempfile::TempDir;
+
+#[test]
+fn init_creates_directory_and_config_when_missing() {
+    let tmp = TempDir::new().unwrap();
+    let dir = tmp.path().join("dotfiles/scripts");
+
+    let result = init::run(dir.to_str().unwrap()).unwrap();
+
+    assert!(dir.exists() && dir.is_dir());
+
+    let config = dir.join("omni.toml");
+    assert!(config.exists());
+
+    assert_eq!(result, util::get_absolute_path(&dir));
+}
+
+#[test]
+fn init_does_not_overwrite_existing_config() {
+    let tmp = TempDir::new().unwrap();
+    let dir = tmp.path().join("dotfiles/scripts");
+    fs::create_dir_all(&dir).unwrap();
+
+    let config_path = dir.join("omni.toml");
+    fs::write(&config_path, "custom = true\n").unwrap();
+
+    init::run(dir.to_str().unwrap()).unwrap();
+
+    let contents = fs::read_to_string(config_path).unwrap();
+    assert_eq!(contents, "custom = true\n");
+}
+
+#[test]
+fn init_resolves_home_tilde_path() {
+    let original_home = std::env::var_os("HOME");
+
+    let tmp_home = TempDir::new().unwrap();
+    std::env::set_var("HOME", tmp_home.path().to_str().unwrap());
+
+    let dir = "~/dotfiles/scripts";
+    let result = init::run(dir).unwrap();
+
+    let expected: PathBuf = tmp_home.path().join("dotfiles/scripts");
+    assert_eq!(result, util::get_absolute_path(&expected));
+
+    if let Some(h) = original_home {
+        std::env::set_var("HOME", h);
+    }
+}
