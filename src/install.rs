@@ -13,6 +13,8 @@ pub fn dispatch(args: InstallArgs) {
     }
 }
 
+// Need to try individual method
+
 fn install_global(package: String) {
     println!("\n[GLOBAL] Installing package: {}", package.green().bold());
 }
