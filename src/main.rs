@@ -5,6 +5,7 @@ use colorize::*;
 
 mod init;
 mod install;
+mod pm;
 mod util;
 
 #[derive(Parser)]

@@ -28,3 +28,9 @@ pub fn ensure_directory_exists(path: &Path) {
 pub fn get_absolute_path(path: &Path) -> PathBuf {
     fs::canonicalize(path).expect("Failed to canonicalize path")
 }
+
+// New: get config path
+pub fn get_config_path() -> PathBuf {
+    let base = resolve_path("~/dotfiles/scripts");
+    base.join("omni.toml")
+}
