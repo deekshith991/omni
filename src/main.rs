@@ -3,7 +3,7 @@
 mod cli;
 mod commands;
 
-use self::cli::{Cli, Commands};
+use crate::cli::{Cli, Commands};
 use clap::Parser;
 
 fn main() {
