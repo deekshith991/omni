@@ -2,6 +2,7 @@
 
 mod cli;
 mod commands;
+mod utils;
 
 use crate::cli::{Cli, Commands};
 use clap::Parser;
