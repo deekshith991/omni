@@ -2,7 +2,7 @@
 
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::utils::{ensure_dir_exists, expand_tilde};
 
@@ -26,6 +26,15 @@ pub fn run() -> std::io::Result<()> {
 # omni.toml
 [settings]
 version = "0"
+
+[apt]
+
+[general]
+
+[dnf]
+
+[pacman]
+
 "#;
 
         file.write_all(default_content.as_bytes())?;

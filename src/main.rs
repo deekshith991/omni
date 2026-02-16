@@ -12,7 +12,7 @@ fn main() {
 
     match cli.command {
         Commands::Init => {
-            commands::init::run();
+            let _ = commands::init::run();
         }
 
         Commands::Install {

@@ -4,6 +4,11 @@ default:
     cargo fmt
     cargo clean
 
+clean:
+    @echo "cleaning the project"
+    cargo fmt
+    cargo clean
+
 build:
     @echo "building project"
     cargo fmt
