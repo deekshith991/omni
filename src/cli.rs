@@ -1,11 +1,14 @@
-use clap::{Parser, Subcommand};
+// src/cli.rs
+
+use clap::{ColorChoice, Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(
     name = "omni",
     version,
-    about = "Omni is a lightweight package manager",
-    long_about = None
+    about = "\x1b[32mOmni is a lightweight package manager\x1b[0m",
+    long_about = None,
+    color = ColorChoice::Auto
 )]
 pub struct Cli {
     #[command(subcommand)]
