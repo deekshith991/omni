@@ -22,4 +22,6 @@ fn main() {
             commands::install::run(package, local, global);
         }
     }
+
+    println!("Process completed successfully!\n");
 }
