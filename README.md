@@ -19,7 +19,7 @@
 Clone the repository and build the tool using Rust:
 
 ```bash
-git clone https://github.com/yourusername/omni.git
+git clone https://github.com/deekshith991/omni.git
 cd omni
 cargo build --release
 mv ./target/release/omni /usr/local/bin/
