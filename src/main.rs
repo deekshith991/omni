@@ -2,6 +2,7 @@
 
 mod cli;
 mod commands;
+mod package_manager;
 mod utils;
 
 use crate::cli::{Cli, Commands};

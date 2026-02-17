@@ -1,6 +1,8 @@
 // src/commands/install.rs
 
-pub fn run(package: String, local: bool, global: bool) {
+use crate::package_manager;
+
+pub fn run(package: String, local: bool, global: bool, comment: Option<String>) {
     println!("Installing package: {}", package);
 
     if local {
@@ -14,8 +16,16 @@ pub fn run(package: String, local: bool, global: bool) {
 
 // local install logic
 fn install_local(package: &str, comment: Option<String>) {
-    println!("optional comment {}", comment.unwrap_or_default());
     println!("Installing {} locally...", package);
+    println!("optional comment {}", comment.unwrap_or_default());
+
+
+    // getting default package_manager
+    match package_manager::detect_package_manager() {
+        // Ok(pm) => install_with_manager(pm, package),
+        Ok(pm) => println!("Installed {:?} {}", pm, package),
+        Err(e) => eprintln!("Error: {}", e),
+    }
 }
 
 // global install logic
