@@ -19,8 +19,9 @@ fn main() {
             package,
             local,
             global,
+            comment,
         } => {
-            commands::install::run(package, local, global);
+            commands::install::run(package, local, global, comment);
         }
     }
 

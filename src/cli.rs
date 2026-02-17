@@ -32,5 +32,9 @@ pub enum Commands {
         /// Install the package globally
         #[arg(long, conflicts_with = "local")]
         global: bool,
+
+        /// Optional comment for this installation
+        #[arg(long, value_name = "TEXT")]
+        comment: Option<String>,
     },
 }
