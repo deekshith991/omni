@@ -28,13 +28,9 @@ pub fn run() -> std::io::Result<()> {
 # omni.toml
 [settings]
 version = "0"
-
 [apt]
-
 [general]
-
 [dnf]
-
 [pacman]
 "#;
 

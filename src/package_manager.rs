@@ -28,11 +28,8 @@ pub fn detect_package_manager() -> Result<PackageManager, &'static str> {
     }
 }
 
-/// Adds a package to the specified section in omni.toml
 pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::Result<()> {
     let base_path = expand_tilde("~/dotfiles/scripts");
-    ensure_dir_exists(&base_path)?;
-
     let config_path = Path::new(&base_path).join("omni.toml");
 
     if !config_path.exists() {
@@ -42,6 +39,7 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::R
         ));
     }
 
+    // Read existing content
     let mut content = String::new();
     {
         let mut file = OpenOptions::new().read(true).open(&config_path)?;
@@ -62,42 +60,61 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::R
     let mut inserted = false;
 
     for i in 0..lines.len() {
-        let line = lines[i].trim().to_string();
+        let line = &lines[i];
+        let trimmed = line.trim();
 
-        if line == section_header {
+        // Start of target section
+        if trimmed == section_header {
             in_section = true;
-            new_lines.push(lines[i].clone());
+            new_lines.push(line.clone());
+
+            // Check if next line is a new section or EOF (empty section)
+            if i + 1 >= lines.len() || lines[i + 1].trim().starts_with('[') {
+                let entry = if let Some(c) = comment {
+                    format!(r#"{package} = ""  # {c}"#)
+                } else {
+                    format!(r#"{package} = ""#)
+                };
+                new_lines.push(entry);
+                inserted = true;
+                in_section = false; // done inserting
+            }
+
             continue;
         }
 
-        if in_section && line.starts_with('[') {
-            let entry = if let Some(c) = comment {
-                format!(r#"{package} = "" # {c}"#)
-            } else {
-                format!(r#"{package} = ""#)
-            };
-            new_lines.push(entry);
-            inserted = true;
+        // End of section: reached next section header
+        if in_section && trimmed.starts_with('[') {
+            if !inserted {
+                let entry = if let Some(c) = comment {
+                    format!(r#"{package} = ""  # {c}"#)
+                } else {
+                    format!(r#"{package} = ""#)
+                };
+                new_lines.push(entry);
+                inserted = true;
+            }
             in_section = false;
         }
 
-        new_lines.push(lines[i].clone());
+        new_lines.push(line.clone());
     }
 
+    // If section is at EOF and not inserted yet
     if in_section && !inserted {
         let entry = if let Some(c) = comment {
-            format!(r#"{package} = "" # {c}"#)
+            format!(r#"{package} = ""  # {c}"#)
         } else {
             format!(r#"{package} = ""#)
         };
         new_lines.push(entry);
     }
 
+    // Write back to file
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
         .open(&config_path)?;
-
     file.write_all(new_lines.join("\n").as_bytes())?;
 
     println!("Added '{}' to [{}] with latest version", package, pm);
