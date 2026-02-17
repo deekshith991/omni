@@ -7,6 +7,7 @@ mod utils;
 
 use crate::cli::{Cli, Commands};
 use clap::Parser;
+use colorize::*;
 
 fn main() {
     let cli = Cli::parse();
@@ -26,5 +27,5 @@ fn main() {
         }
     }
 
-    println!("Process completed successfully!\n");
+    println!("{} {}", "[+]".green(), "Process completed successfully!\n");
 }

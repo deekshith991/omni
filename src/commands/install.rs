@@ -1,97 +1,94 @@
 // src/commands/install.rs
 
 use crate::package_manager;
-use std::process::Command;
+use colorize::AnsiColor;
 use std::io;
+use std::process::Command;
 
-/// Main entry for install command
+/// Main entry for the install command
+/// Determines the installation mode and calls the appropriate handler
 pub fn run(package: String, general: bool, global: bool, comment: Option<String>) {
-    println!("Installing package: {}", package);
+    println!(
+        "{} Installing package: {}",
+        "[+]".green(),
+        package.to_string().green().bold()
+    );
 
     if general {
-        install_general(&package, comment);
+        install_general(&package, comment.as_deref());
     } else if global {
-        install_global(&package, comment);
+        install_global(&package, comment.as_deref());
     } else {
-        install_default(&package, comment);
+        install_default(&package, comment.as_deref());
     }
 }
 
-/// General install
-fn install_general(package: &str, comment: Option<String>) {
+/// ------------------------
+/// INSTALLATION MODES
+/// ------------------------
+
+/// General/local installation
+fn install_general(package: &str, comment: Option<&str>) {
     println!("Installing {} locally...", package);
 
-    // Add to [general] section
-    if let Err(e) = package_manager::add_package("general", package, comment.as_deref()) {
-        eprintln!("Failed to add package to [general]: {}", e);
-    }
+    // Add to [general] section in config
+    add_package_to_section("general", package, comment);
 
-    // Optional: Attempt system install if you want
+    // Attempt system installation if package manager is detected
     if let Ok(pm) = package_manager::detect_package_manager() {
-        if let Err(e) = install_package(pm_str(&pm), package) {
-            eprintln!("System installation failed: {}", e);
-        }
+        install_system_package(pm, package);
     }
 }
 
-/// Global install
-fn install_global(package: &str, comment: Option<String>) {
+/// Global installation (system-wide)
+fn install_global(package: &str, comment: Option<&str>) {
     println!("Installing {} globally...", package);
 
     match package_manager::detect_package_manager() {
         Ok(pm) => {
-            let section = match pm {
-                package_manager::PackageManager::Apt => "apt",
-                package_manager::PackageManager::Dnf => "dnf",
-                package_manager::PackageManager::Pacman => "pacman",
-            };
+            // Add to specific package manager section
+            let section = pm_section(&pm);
+            add_package_to_section(section, package, comment);
 
-            // Add to package manager section
-            if let Err(e) = package_manager::add_package(section, package, comment.as_deref()) {
-                eprintln!("Failed to add package to [{}]: {}", section, e);
-            }
+            // Also add to [general] section
+            add_package_to_section("general", package, comment);
 
-            // Add to [general] section
-            if let Err(e) = package_manager::add_package("general", package, comment.as_deref()) {
-                eprintln!("Failed to add package to [general]: {}", e);
-            }
-
-            // Install system package
-            if let Err(e) = install_package(pm_str(&pm), package) {
-                eprintln!("System installation failed: {}", e);
-            }
+            // Install via system package manager
+            install_system_package(pm, package);
         }
         Err(e) => eprintln!("Error detecting package manager: {}", e),
     }
 }
 
-/// Default install
-fn install_default(package: &str, comment: Option<String>) {
+/// Default installation
+fn install_default(package: &str, comment: Option<&str>) {
     println!("Installing {} with default mode...", package);
 
     match package_manager::detect_package_manager() {
         Ok(pm) => {
-            let section = match pm {
-                package_manager::PackageManager::Apt => "apt",
-                package_manager::PackageManager::Dnf => "dnf",
-                package_manager::PackageManager::Pacman => "pacman",
-            };
+            // Add to package manager section
+            add_package_to_section(pm_section(&pm), package, comment);
 
-            if let Err(e) = package_manager::add_package(section, package, comment.as_deref()) {
-                eprintln!("Failed to add package to [{}]: {}", section, e);
-            }
-
-            // Install system package
-            if let Err(e) = install_package(pm_str(&pm), package) {
-                eprintln!("System installation failed: {}", e);
-            }
+            // Install via system package manager
+            install_system_package(pm, package);
         }
         Err(e) => eprintln!("Error detecting package manager: {}", e),
     }
 }
 
-/// Convert PackageManager enum to &str
-fn pm_str(pm: &package_manager::PackageManager) -> &str {
+/// ------------------------
+/// HELPER FUNCTIONS
+/// ------------------------
+
+/// Add a package to a given section with an optional comment
+fn add_package_to_section(section: &str, package: &str, comment: Option<&str>) {
+    if let Err(e) = package_manager::add_package(section, package, comment) {
+        eprintln!("Failed to add package to [{}]: {}", section, e);
+    }
+}
+
+/// Map PackageManager enum to string & section name
+fn pm_section(pm: &package_manager::PackageManager) -> &str {
     match pm {
         package_manager::PackageManager::Apt => "apt",
         package_manager::PackageManager::Dnf => "dnf",
@@ -99,9 +96,18 @@ fn pm_str(pm: &package_manager::PackageManager) -> &str {
     }
 }
 
-/// Install package using system package manager
+/// Install a package using the detected system package manager
+fn install_system_package(pm: package_manager::PackageManager, package: &str) {
+    let pm_name = pm_section(&pm);
+
+    if let Err(e) = install_package(pm_name, package) {
+        eprintln!("System installation failed: {}", e);
+    }
+}
+
+/// Execute system command to install package
 fn install_package(pm: &str, package_name: &str) -> io::Result<()> {
-    // Determine the installation command based on the package manager
+    // Build installation command based on package manager
     let mut cmd = match pm {
         "pacman" => Command::new("sudo")
             .args(&["pacman", "-S", package_name, "--noconfirm"])
@@ -118,10 +124,15 @@ fn install_package(pm: &str, package_name: &str) -> io::Result<()> {
         }
     };
 
-    // Wait for the command to finish
+    // Wait for command to finish
     let status = cmd.wait()?;
     if status.success() {
-        println!("{} installed successfully using {}!", package_name, pm);
+        println!(
+            "{} {} installed successfully using {}!",
+            "[+]".green(),
+            package_name.to_string().green().bold(),
+            pm
+        );
     } else {
         eprintln!("Failed to install {} using {}", package_name, pm);
     }

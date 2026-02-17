@@ -1,11 +1,12 @@
 // src/package_manager.rs
 
+use colorize::AnsiColor;
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
 use std::path::Path;
 use which::which;
 
-use crate::utils::{ensure_dir_exists, expand_tilde};
+use crate::utils::expand_tilde;
 
 /// Supported package managers
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -28,6 +29,7 @@ pub fn detect_package_manager() -> Result<PackageManager, &'static str> {
     }
 }
 
+/// Adds a package entry to the omni.toml configuration file
 pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::Result<()> {
     let base_path = expand_tilde("~/dotfiles/scripts");
     let config_path = Path::new(&base_path).join("omni.toml");
@@ -39,7 +41,7 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::R
         ));
     }
 
-    // Read existing content
+    // Read existing file content
     let mut content = String::new();
     {
         let mut file = OpenOptions::new().read(true).open(&config_path)?;
@@ -54,46 +56,39 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::R
         ));
     }
 
-    let mut lines: Vec<String> = content.lines().map(|l| l.to_string()).collect();
+    let lines: Vec<String> = content.lines().map(|l| l.to_string()).collect();
     let mut new_lines = Vec::new();
     let mut in_section = false;
     let mut inserted = false;
 
-    for i in 0..lines.len() {
-        let line = &lines[i];
+    // Prepare the new entry line
+    let entry_line = match comment {
+        Some(c) => format!(r#"{package} = ""  # {c}""#),
+        None => format!(r#"{package} = ""#),
+    };
+
+    for (i, line) in lines.iter().enumerate() {
         let trimmed = line.trim();
 
-        // Start of target section
+        // Start of the target section
         if trimmed == section_header {
             in_section = true;
             new_lines.push(line.clone());
 
-            // Check if next line is a new section or EOF (empty section)
+            // If next line is a new section or EOF, insert immediately
             if i + 1 >= lines.len() || lines[i + 1].trim().starts_with('[') {
-                let entry = if let Some(c) = comment {
-                    format!(r#"{package} = ""  # {c}"#)
-                } else {
-                    format!(r#"{package} = ""#)
-                };
-                new_lines.push(entry);
+                new_lines.push(entry_line.clone());
                 inserted = true;
-                in_section = false; // done inserting
+                in_section = false;
             }
 
             continue;
         }
 
         // End of section: reached next section header
-        if in_section && trimmed.starts_with('[') {
-            if !inserted {
-                let entry = if let Some(c) = comment {
-                    format!(r#"{package} = ""  # {c}"#)
-                } else {
-                    format!(r#"{package} = ""#)
-                };
-                new_lines.push(entry);
-                inserted = true;
-            }
+        if in_section && trimmed.starts_with('[') && !inserted {
+            new_lines.push(entry_line.clone());
+            inserted = true;
             in_section = false;
         }
 
@@ -102,22 +97,22 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::R
 
     // If section is at EOF and not inserted yet
     if in_section && !inserted {
-        let entry = if let Some(c) = comment {
-            format!(r#"{package} = ""  # {c}"#)
-        } else {
-            format!(r#"{package} = ""#)
-        };
-        new_lines.push(entry);
+        new_lines.push(entry_line.clone());
     }
 
-    // Write back to file
+    // Write updated content back to the file
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
         .open(&config_path)?;
     file.write_all(new_lines.join("\n").as_bytes())?;
 
-    println!("Added '{}' to [{}] with latest version", package, pm);
+    println!(
+        "Added '{}' to [{}]{}",
+        package,
+        pm.to_string().blue().bold(),
+        comment.map_or("".to_string(), |c| format!(" with comment: {}", c))
+    );
 
     Ok(())
 }

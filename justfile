@@ -8,6 +8,8 @@ clean:
     @echo "cleaning the project"
     cargo fmt
     cargo clean
+    sudo apt remove vim htop btop
+    rm ~/dotfiles/scripts/omni.toml
 
 build:
     @echo "building project"
@@ -21,6 +23,8 @@ release:
 
 run-cmd:
     cargo run -- init
+    cat ~/dotfiles/scripts/omni.toml
     cargo run -- install vim
-    cargo run -- install vim --global
-    cargo run -- install vim --local
+    cargo run -- install btop --general
+    cargo run -- install htop --global
+    cat ~/dotfiles/scripts/omni.toml
