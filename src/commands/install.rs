@@ -2,6 +2,7 @@
 
 use crate::package_manager;
 
+/// Main entry for install command
 pub fn run(package: String, local: bool, global: bool, comment: Option<String>) {
     println!("Installing package: {}", package);
 
@@ -14,28 +15,68 @@ pub fn run(package: String, local: bool, global: bool, comment: Option<String>) 
     }
 }
 
-// local install logic
+/// Local install
 fn install_local(package: &str, comment: Option<String>) {
     println!("Installing {} locally...", package);
-    println!("optional comment {}", comment.unwrap_or_default());
 
-
-    // getting default package_manager
     match package_manager::detect_package_manager() {
-        // Ok(pm) => install_with_manager(pm, package),
-        Ok(pm) => println!("Installed {:?} {}", pm, package),
-        Err(e) => eprintln!("Error: {}", e),
+        Ok(pm) => {
+            let section = match pm {
+                package_manager::PackageManager::Apt => "apt",
+                package_manager::PackageManager::Dnf => "dnf",
+                package_manager::PackageManager::Pacman => "pacman",
+            };
+
+            if let Err(e) = package_manager::add_package(section, package, comment.as_deref()) {
+                eprintln!("Failed to add package to [{}]: {}", section, e);
+            }
+        }
+        Err(e) => eprintln!("Error detecting package manager: {}", e),
     }
 }
 
-// global install logic
+/// Global install
 fn install_global(package: &str, comment: Option<String>) {
     println!("Installing {} globally...", package);
-    println!("optional comment {}", comment.unwrap_or_default());
+
+    match package_manager::detect_package_manager() {
+        Ok(pm) => {
+            let section = match pm {
+                package_manager::PackageManager::Apt => "apt",
+                package_manager::PackageManager::Dnf => "dnf",
+                package_manager::PackageManager::Pacman => "pacman",
+            };
+
+            // Add to package manager section
+            if let Err(e) = package_manager::add_package(section, package, comment.as_deref()) {
+                eprintln!("Failed to add package to [{}]: {}", section, e);
+            }
+
+            // Add to [general] section
+            if let Err(e) = package_manager::add_package("general", package, comment.as_deref()) {
+                eprintln!("Failed to add package to [general]: {}", e);
+            }
+        }
+        Err(e) => eprintln!("Error detecting package manager: {}", e),
+    }
 }
 
-// default install logic
+/// Default install
 fn install_default(package: &str, comment: Option<String>) {
     println!("Installing {} with default mode...", package);
-    println!("optional comment {}", comment.unwrap_or_default());
+
+    match package_manager::detect_package_manager() {
+        Ok(pm) => {
+            let section = match pm {
+                package_manager::PackageManager::Apt => "apt",
+                package_manager::PackageManager::Dnf => "dnf",
+                package_manager::PackageManager::Pacman => "pacman",
+            };
+
+            if let Err(e) = package_manager::add_package(section, package, comment.as_deref()) {
+                eprintln!("Failed to add package to [{}]: {}", section, e);
+            }
+        }
+        Err(e) => eprintln!("Error detecting package manager: {}", e),
+    }
 }
