@@ -38,9 +38,8 @@ version = "0"
         println!("{} {:?}", "Created:".green().bold(), config_path);
     } else {
         println!(
-            "{} {} {:?}",
+            "{} omni.toml already exists at: {:?}",
             "[=]".green(),
-            "omni.toml already exists at",
             config_path
         );
     }

@@ -26,7 +26,6 @@ pub fn run(package: String, general: bool, global: bool, comment: Option<String>
 /// ------------------------
 /// INSTALLATION MODES
 /// ------------------------
-
 /// General/local installation
 fn install_general(package: &str, comment: Option<&str>) {
     println!("Installing {} locally...", package);
@@ -79,7 +78,6 @@ fn install_default(package: &str, comment: Option<&str>) {
 /// ------------------------
 /// HELPER FUNCTIONS
 /// ------------------------
-
 /// Add a package to a given section with an optional comment
 fn add_package_to_section(section: &str, package: &str, comment: Option<&str>) {
     if let Err(e) = package_manager::add_package(section, package, comment) {
@@ -110,13 +108,13 @@ fn install_package(pm: &str, package_name: &str) -> io::Result<()> {
     // Build installation command based on package manager
     let mut cmd = match pm {
         "pacman" => Command::new("sudo")
-            .args(&["pacman", "-S", package_name, "--noconfirm"])
+            .args(["pacman", "-S", package_name, "--noconfirm"])
             .spawn()?,
         "dnf" => Command::new("sudo")
-            .args(&["dnf", "install", "-y", package_name])
+            .args(["dnf", "install", "-y", package_name])
             .spawn()?,
         "apt" => Command::new("sudo")
-            .args(&["apt", "install", "-y", package_name])
+            .args(["apt", "install", "-y", package_name])
             .spawn()?,
         _ => {
             eprintln!("Unsupported package manager: {}", pm);

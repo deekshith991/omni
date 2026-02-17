@@ -7,10 +7,10 @@ use std::path::Path;
 
 /// Expands ~ to the user's home directory
 pub fn expand_tilde(path: &str) -> String {
-    if path.starts_with("~") {
-        if let Some(home) = env::var_os("HOME") {
-            return path.replacen("~", home.to_str().unwrap(), 1);
-        }
+    if path.starts_with("~")
+        && let Some(home) = env::var_os("HOME")
+    {
+        return path.replacen("~", home.to_str().unwrap(), 1);
     }
     path.to_string()
 }

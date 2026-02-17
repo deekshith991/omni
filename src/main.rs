@@ -27,5 +27,5 @@ fn main() {
         }
     }
 
-    println!("{} {}", "[+]".green(), "Process completed successfully!\n");
+    println!("{} Process completed successfully!\n", "[+]".green(),);
 }
