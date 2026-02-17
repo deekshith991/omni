@@ -27,10 +27,10 @@ pub enum Commands {
 
         /// Install the package locally
         #[arg(long, conflicts_with = "global")]
-        local: bool,
+        general: bool,
 
         /// Install the package globally
-        #[arg(long, conflicts_with = "local")]
+        #[arg(long, conflicts_with = "general")]
         global: bool,
 
         /// Optional comment for this installation

@@ -18,11 +18,11 @@ fn main() {
 
         Commands::Install {
             package,
-            local,
+            general,
             global,
             comment,
         } => {
-            commands::install::run(package, local, global, comment);
+            commands::install::run(package, general, global, comment);
         }
     }
 
