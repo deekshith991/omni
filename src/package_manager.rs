@@ -76,10 +76,10 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> io::Result
 
     // Add optional comment
     if let Some(c) = comment
-        && let Some(value) = table[package].as_value_mut() {
-            value.decor_mut().set_suffix(format!("  # {}", c));
-        }
-
+        && let Some(value) = table[package].as_value_mut()
+    {
+        value.decor_mut().set_suffix(format!("  # {}", c));
+    }
 
     // Write updated TOML back
     fs::write(&config_path, doc.to_string())?;
