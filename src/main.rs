@@ -29,11 +29,16 @@ fn main() {
         Commands::List => {
             let _ = commands::list::run();
         }
-
-        Commands::Remove => {
-            let _ = commands::remove::run();
+        Commands::Remove {
+            package,
+            all,
+            pm,
+            general,
+            global,
+        } => {
+            commands::remove::run(package, all, pm, general, global);
         }
     }
 
-    println!("{} Process completed successfully!\n", "[+]".green(),);
+    println!("{} Process completed successfully!\n", "[+]".green());
 }
