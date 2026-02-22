@@ -1,4 +1,4 @@
-name: Release binary
+name: Release
 
 on:
   pull_request:
@@ -11,17 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-          - os: macos-latest
-            target: x86_64-apple-darwin
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -33,41 +23,21 @@ jobs:
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Set up cross-compilation toolchain
-        if: matrix.os != 'ubuntu-latest'
-        run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            rustup target add x86_64-pc-windows-msvc
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            rustup target add x86_64-apple-darwin
-          fi
-
       - name: Build
         run: |
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            cargo build --release --target ${{ matrix.target }}
+            cargo build --release
           else
-            cargo build --target ${{ matrix.target }}
+            cargo build
           fi
 
       - name: Rename binary
         if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          case "${{ matrix.os }}" in
-            ubuntu-latest)
-              mv target/${{ matrix.target }}/release/omni target/${{ matrix.target }}/release/omni-x86_64
-              ;;
-            macos-latest)
-              mv target/${{ matrix.target }}/release/omni target/${{ matrix.target }}/release/omni-x86_64-macos
-              ;;
-            windows-latest)
-              mv target/${{ matrix.target }}/release/omni.exe target/${{ matrix.target }}/release/omni-x86_64-windows.exe
-              ;;
-          esac
+        run: mv target/release/omni target/release/omni-x86_64
 
       - name: Upload binary to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: target/${{ matrix.target }}/release/*
+          files: target/release/omni-x86_64
           generate_release_notes: true
