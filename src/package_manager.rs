@@ -1,12 +1,13 @@
 // src/package_manager.rs
 
 use colorize::AnsiColor;
-use std::fs::OpenOptions;
-use std::io::{Read, Write};
+use std::fs;
+use std::io;
 use std::path::Path;
 use which::which;
 
 use crate::utils::expand_tilde;
+use toml_edit::{DocumentMut, value};
 
 /// Supported package managers
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,88 +31,65 @@ pub fn detect_package_manager() -> Result<PackageManager, &'static str> {
 }
 
 /// Adds a package entry to the omni.toml configuration file
-pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> std::io::Result<()> {
+pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> io::Result<()> {
     let base_path = expand_tilde("~/dotfiles/scripts");
     let config_path = Path::new(&base_path).join("omni.toml");
 
     if !config_path.exists() {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
             "omni.toml not found. Run init first.",
         ));
     }
 
-    // Read existing file content
-    let mut content = String::new();
-    {
-        let mut file = OpenOptions::new().read(true).open(&config_path)?;
-        file.read_to_string(&mut content)?;
-    }
+    // Read and parse TOML
+    let content = fs::read_to_string(&config_path)?;
+    let mut doc = content
+        .parse::<DocumentMut>()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    let section_header = format!("[{}]", pm);
-    if !content.contains(&section_header) {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
+    // Ensure section exists
+    if !doc.as_table().contains_key(pm) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
             format!("Section [{}] not found in omni.toml", pm),
         ));
     }
 
-    let lines: Vec<String> = content.lines().map(|l| l.to_string()).collect();
-    let mut new_lines = Vec::new();
-    let mut in_section = false;
-    let mut inserted = false;
+    let table = doc[pm]
+        .as_table_mut()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Invalid section type"))?;
 
-    // Prepare the new entry line
-    let entry_line = match comment {
-        Some(c) => format!(r#"{package} = ""  # {c}""#),
-        None => format!(r#"{package} = ""#),
-    };
-
-    for (i, line) in lines.iter().enumerate() {
-        let trimmed = line.trim();
-
-        // Start of the target section
-        if trimmed == section_header {
-            in_section = true;
-            new_lines.push(line.clone());
-
-            // If next line is a new section or EOF, insert immediately
-            if i + 1 >= lines.len() || lines[i + 1].trim().starts_with('[') {
-                new_lines.push(entry_line.clone());
-                inserted = true;
-                in_section = false;
-            }
-
-            continue;
-        }
-
-        // End of section: reached next section header
-        if in_section && trimmed.starts_with('[') && !inserted {
-            new_lines.push(entry_line.clone());
-            inserted = true;
-            in_section = false;
-        }
-
-        new_lines.push(line.clone());
+    // Prevent duplicate entries
+    if table.contains_key(package) {
+        println!(
+            "{} '{}' already exists in [{}]",
+            "[!]".yellow().bold(),
+            package,
+            pm.to_string().blue().bold()
+        );
+        return Ok(());
     }
 
-    // If section is at EOF and not inserted yet
-    if in_section && !inserted {
-        new_lines.push(entry_line.clone());
+    // Insert new package
+    table[package] = value("");
+
+    // Add optional comment
+    if let Some(c) = comment {
+        if let Some(value) = table[package].as_value_mut() {
+            value.decor_mut().set_suffix(format!("  # {}", c));
+        }
     }
 
-    // Write updated content back to the file
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(&config_path)?;
-    file.write_all(new_lines.join("\n").as_bytes())?;
+    // Write updated TOML back
+    fs::write(&config_path, doc.to_string())?;
 
     println!(
-        "Added '{}' to [{}]{}",
+        "{} '{}' added to [{}]{}",
+        "[+]".green().bold(),
         package,
         pm.to_string().blue().bold(),
-        comment.map_or("".to_string(), |c| format!(" with comment: {}", c))
+        comment.map_or(String::new(), |c| format!(" with comment: {}", c))
     );
 
     Ok(())
