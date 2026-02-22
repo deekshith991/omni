@@ -43,6 +43,22 @@ pub enum Commands {
     List,
 
     // Remove packages from the toml
+    // Remove packages from the toml
     #[command(about = "Remove installed package")]
-    Remove,
+    Remove {
+        /// remove package
+        package: String,
+
+        #[arg(long, conflicts_with_all = ["pm", "general", "global"])]
+        all: bool,
+
+        #[arg(long, conflicts_with_all = ["all", "general", "global"])]
+        pm: bool,
+
+        #[arg(long, conflicts_with_all = ["all", "pm", "global"])]
+        general: bool,
+
+        #[arg(long, conflicts_with_all = ["all", "pm", "general"])]
+        global: bool,
+    },
 }

@@ -94,3 +94,60 @@ pub fn add_package(pm: &str, package: &str, comment: Option<&str>) -> io::Result
 
     Ok(())
 }
+
+/// remove package from the toml file
+pub fn remove_package(pm: &str, package: &str) -> io::Result<()> {
+    let base_path = expand_tilde("~/dotfiles/scripts");
+    let config_path = Path::new(&base_path).join("omni.toml");
+
+    if !config_path.exists() {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "omni.toml not found. Run init first.",
+        ));
+    }
+
+    // Read and parse TOML
+    let content = fs::read_to_string(&config_path)?;
+    let mut doc = content
+        .parse::<DocumentMut>()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    // Ensure section exists
+    if !doc.as_table().contains_key(pm) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("Section [{}] not found in omni.toml", pm),
+        ));
+    }
+
+    let table = doc[pm]
+        .as_table_mut()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Invalid section type"))?;
+
+    // Check if package exists
+    if !table.contains_key(package) {
+        println!(
+            "{} '{}' not found in [{}]",
+            "[!]".yellow().bold(),
+            package,
+            pm.to_string().blue().bold()
+        );
+        return Ok(());
+    }
+
+    // Remove package
+    table.remove(package);
+
+    // Write updated TOML back
+    fs::write(&config_path, doc.to_string())?;
+
+    println!(
+        "{} '{}' removed from [{}]",
+        "[-]".red().bold(),
+        package,
+        pm.to_string().blue().bold()
+    );
+
+    Ok(())
+}
