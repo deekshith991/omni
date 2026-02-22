@@ -41,4 +41,8 @@ pub enum Commands {
     // list the packages in toml
     #[command(about = "List installed packages")]
     List,
+
+    // Remove packages from the toml
+    #[command(about = "Remove installed package")]
+    Remove,
 }

@@ -47,5 +47,6 @@ publish tag:
     @echo "No clippy warnings! Pushing to git..."
     @echo "Creating Git tag {{tag}}..."
     git tag {{tag}}
+    git push
     @echo "Pushing tag {{tag}} to remote..."
     git push origin {{tag}}

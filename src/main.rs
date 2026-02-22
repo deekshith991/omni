@@ -29,6 +29,10 @@ fn main() {
         Commands::List => {
             let _ = commands::list::run();
         }
+
+        Commands::Remove => {
+            let _ = commands::remove::run();
+        }
     }
 
     println!("{} Process completed successfully!\n", "[+]".green(),);
