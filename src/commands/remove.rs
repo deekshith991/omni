@@ -29,7 +29,6 @@ pub fn run(package: String, all: bool, pm: bool, general: bool, global: bool) {
 /// ------------------------
 /// REMOVAL MODES
 /// ------------------------
-
 /// Remove from everywhere (general + pm section + uninstall)
 fn remove_all(package: &str) {
     println!("Removing {} from all sections...", package);
@@ -96,7 +95,6 @@ fn remove_default(package: &str) {
 /// ------------------------
 /// HELPER FUNCTIONS
 /// ------------------------
-
 fn remove_from_section(section: &str, package: &str) {
     if let Err(e) = package_manager::remove_package(section, package) {
         eprintln!("Failed to remove package from [{}]: {}", section, e);
