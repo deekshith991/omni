@@ -40,6 +40,11 @@ push:
     git push
 
 publish tag:
+    @echo "Formatting the code..."
+    cargo fmt
+    @echo "Checking code with clippy..."
+    cargo clippy -- -D warnings
+    @echo "No clippy warnings! Pushing to git..."
     @echo "Creating Git tag {{tag}}..."
     git tag {{tag}}
     @echo "Pushing tag {{tag}} to remote..."
