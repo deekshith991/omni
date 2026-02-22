@@ -30,3 +30,11 @@ run-cmd:
     cargo run -- install htop --global --comment="global commant"
     cargo run -- install htop --global
     cargo run -- list
+
+publish:
+    @echo "Formatting the code..."
+    cargo fmt
+    @echo "Checking code with clippy..."
+    cargo clippy -- -D warnings
+    @echo "No clippy warnings! Pushing to git..."
+    git push
