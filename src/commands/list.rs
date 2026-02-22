@@ -1,9 +1,9 @@
 use std::fs;
 use std::path::Path;
 
+use crate::utils::expand_tilde;
 use colorize::*;
 use toml_edit::{Document, Item};
-use crate::utils::expand_tilde;
 
 pub fn run() -> std::io::Result<()> {
     println!("{}", "[=] Listing packages...".blue().bold());
@@ -28,11 +28,10 @@ pub fn run() -> std::io::Result<()> {
             .get("version")
             .and_then(|v| v.as_value())
             .and_then(|v| v.as_str())
-        {
-            let version = version.to_string(); // clone to break borrow
-            println!("{} {}", "[•] Version:".cyan().bold(), version.bold());
-        }
-
+    {
+        let version = version.to_string(); // clone to break borrow
+        println!("{} {}", "[•] Version:".cyan().bold(), version.bold());
+    }
 
     // Print package sections
     for section_name in &["general", "apt", "dnf", "pacman"] {
@@ -48,7 +47,11 @@ fn print_section(doc: &Document<String>, section_name: &str) {
             return;
         }
 
-        println!("\n{} {}", "[•]".green().bold(), section_name.to_string().bold());
+        println!(
+            "\n{} {}",
+            "[•]".green().bold(),
+            section_name.to_string().bold()
+        );
 
         let mut keys: Vec<_> = table.iter().collect();
         keys.sort_by(|a, b| a.0.cmp(b.0));
