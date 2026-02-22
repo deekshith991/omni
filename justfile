@@ -31,10 +31,16 @@ run-cmd:
     cargo run -- install htop --global
     cargo run -- list
 
-publish:
+push:
     @echo "Formatting the code..."
     cargo fmt
     @echo "Checking code with clippy..."
     cargo clippy -- -D warnings
     @echo "No clippy warnings! Pushing to git..."
     git push
+
+publish tag:
+    @echo "Creating Git tag {{tag}}..."
+    git tag {{tag}}
+    @echo "Pushing tag {{tag}} to remote..."
+    git push origin {{tag}}
