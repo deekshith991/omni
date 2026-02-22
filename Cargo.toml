@@ -8,3 +8,6 @@ clap = { version = "4.5.58", features = ["derive"] }
 colorize = "0.1.0"
 which = "8.0.0"
 toml_edit = "0.25.3+spec-1.1.0"
+serde = { version = "1.0.228", features = ["derive"] }
+toml = "1.0.3"
+string = "0.3.1"

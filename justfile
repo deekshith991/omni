@@ -23,11 +23,10 @@ release:
 
 run-cmd:
     cargo run -- init
-    cat ~/dotfiles/scripts/omni.toml
+    cargo run -- list
     cargo run -- install vim
     cargo run -- install btop --general
     cargo run -- install btop --general  --comment="general commnet"
     cargo run -- install htop --global --comment="global commant"
     cargo run -- install htop --global
-    cat ~/dotfiles/scripts/omni.toml
-    cargo run -- install vim
+    cargo run -- list

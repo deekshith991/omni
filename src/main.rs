@@ -25,6 +25,10 @@ fn main() {
         } => {
             commands::install::run(package, general, global, comment);
         }
+
+        Commands::List => {
+            let _ = commands::list::run();
+        }
     }
 
     println!("{} Process completed successfully!\n", "[+]".green(),);

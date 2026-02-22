@@ -37,4 +37,8 @@ pub enum Commands {
         #[arg(long, value_name = "TEXT")]
         comment: Option<String>,
     },
+
+    // list the packages in toml
+    #[command(about = "List installed packages")]
+    List,
 }
